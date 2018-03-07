@@ -1,4 +1,6 @@
 from django.shortcuts import HttpResponse
+from django.contrib import admin
+from django.conf.urls import url, include
 
 
 class BaseKeegvAdmin(object):
@@ -6,6 +8,65 @@ class BaseKeegvAdmin(object):
     def __init__(self, model_class, site):
         self.model_class = model_class
         self.site = site
+
+    @property
+    def urls(self):
+
+        info = self.model_class._meta.app_label, self.model_class._meta.model_name
+
+        urlpatterns = [
+          url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
+          url(r'^add/$', self.add_view, name='%s_%s_add' % info),
+          url(r'^(.+)/delete/$', self.delete_view, name='%s_%s_delete' % info),
+          url(r'^(.+)/change/$', self.change_view, name='%s_%s_change' % info),
+        ]
+        return urlpatterns
+
+    def changelist_view(self, request):
+        """
+        查看列表
+        :param request: 请求信息
+        :return:
+        """
+        info = self.model_class._meta.app_label, self.model_class._meta.model_name
+        data = '%s_%s_changelist' % info
+        print(data)
+        return HttpResponse(data)
+
+    def add_view(self, request):
+        """
+        添加
+        :param request: 请求信息
+        :return:
+        """
+        info = self.model_class._meta.app_label, self.model_class._meta.model_name
+        data = '%s_%s_add' % info
+        print(data)
+        return HttpResponse(data)
+
+    def delete_view(self, request, pk):
+        """
+        删除
+        :param request: 请求信息
+        :param pk:  NID
+        :return:
+        """
+        info = self.model_class._meta.app_label, self.model_class._meta.model_name
+        data = '%s_%s_delete' % info
+        print(data)
+        return HttpResponse(data)
+
+    def change_view(self, request, pk):
+        """
+        修改
+        :param request: 请求信息
+        :param pk:  nid
+        :return:
+        """
+        info = self.model_class._meta.app_label, self.model_class._meta.model_name
+        data = '%s_%s_change' % info
+        print(data)
+        return HttpResponse(data)
 
 
 class Keegv(object):
@@ -25,7 +86,6 @@ class Keegv(object):
         """
 
     def get_urls(self):
-        from django.conf.urls import url
         ret = [
             # 启动 Django 程序就会自动生成的 URL
             # url(r'login/', self.login, name='login'),
@@ -53,7 +113,7 @@ class Keegv(object):
             # userinfo
             '''
 
-            ret.append(url(r'%s/%s/' % (app_label, model_name), self.login))
+            ret.append(url(r'%s/%s/' % (app_label, model_name), include(keegv_admin_obj.urls)))
 
         return ret
 
