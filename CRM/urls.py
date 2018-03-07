@@ -15,9 +15,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from app01 import views
+from keegv.service import v1
 
 urlpatterns = [
     # path('admin/', admin.site.urls), # 不再使用 django admin.
-    path('test/', views.test),
+    path('kv/', v1.site.urls),
 ]
