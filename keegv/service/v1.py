@@ -88,8 +88,8 @@ class Keegv(object):
     def get_urls(self):
         ret = [
             # 启动 Django 程序就会自动生成的 URL
-            # url(r'login/', self.login, name='login'),
-            # url(r'logout/', self.logout, name='logout'),
+            url(r'login/', self.login, name='login'),
+            url(r'logout/', self.logout, name='logout'),
         ]
 
         # 用户通过在 app 中我们指定的文件 kv.py 中注册model ,我们会根据 model 自动生成相关的 URL
@@ -119,7 +119,7 @@ class Keegv(object):
 
     @property  #@property可以把一个实例方法变成其同名属性，以支持.号访问，它亦可标记设置限制，加以规范.
     def urls(self):
-        return self.get_urls(), self.app_name,self.namespace
+        return self.get_urls(), self.app_name, self.namespace
 
     def login(self, request):
         return HttpResponse('login')
