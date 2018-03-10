@@ -1,7 +1,14 @@
 <table border="1">
+    {# 表头 #}
     <thead>
+        <tr>
+            {% for foo in header_list %}
+                <th>{{ foo }}</th>
+            {% endfor %}
 
+        </tr>
     </thead>
+    {# 表内容 #}
     <tbody>
         {% for item in result %}
             <tr>
@@ -11,5 +18,4 @@
             </tr>
         {% endfor %}
     </tbody>
-
 </table>

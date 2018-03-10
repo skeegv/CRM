@@ -36,7 +36,6 @@ class BaseKeegvAdmin(object):
         # app01_userinfo_changelist
 
         result_list = self.model_class.objects.all()
-        print(99, result_list)
         # print(self.model_class)
         # <class 'app01.models.UserInfo'>
 
@@ -82,7 +81,6 @@ class BaseKeegvAdmin(object):
         """
         info = self.model_class._meta.app_label, self.model_class._meta.model_name
         data = '%s_%s_change' % info
-        print(data)
         return HttpResponse(data)
 
 

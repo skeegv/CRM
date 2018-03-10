@@ -1,6 +1,8 @@
-from keegv.service import v1
 from app02 import models
+from keegv.service import v1
+from django.urls import reverse
 from django.utils.safestring import mark_safe
+
 
 class KeegvXXX(v1.BaseKeegvAdmin):
 
@@ -12,11 +14,6 @@ class KeegvXXX(v1.BaseKeegvAdmin):
         return "<a href='{0}'>编辑</a>".format(obj.id)
         pk = primary_key 代指数据库里的 id
         反向生成 namespace
-        '''
-
-
-        from django.urls import reverse
-        '''
         # name = namespace:app名称_model名称_change
         # 获取 app 名称和 模块名称 方式一
         print(self.model_class._meta.app_label)
