@@ -85,6 +85,7 @@ from django.conf.urls import url, include
 
 class BaseKeegvAdmin(object):
     list_display = "__all__"
+    add_or_model_form = None
 
     def __init__(self, model_class, site):
         self.model_class = model_class
@@ -93,6 +94,22 @@ class BaseKeegvAdmin(object):
 
         self.app_label = model_class._meta.app_label
         self.model_name = model_class._meta.model_name
+
+
+    def get_add_or_model_form(self):
+        if self.add_or_model_form:
+            # 用户自定制配置
+            return self.add_or_model_form
+        else:
+            # 默认配置(对象由类创建,类由 type 创建)
+            from django.forms import ModelForm
+
+            class MyModelForm(ModelForm):
+                class Meta:
+                    model = self.model_class
+                    fields = "__all__"
+
+            return MyModelForm
 
     @property
     def urls(self):
@@ -150,9 +167,15 @@ class BaseKeegvAdmin(object):
         :param request: 请求信息
         :return:
         """
-        info = self.model_class._meta.app_label, self.model_class._meta.model_name
-        data = '%s_%s_add' % info
-        return HttpResponse(data)
+        print(request.GET.get('_changelistfiter'))
+
+        model_form_cls = self.get_add_or_model_form()
+
+        context = {
+            "form": model_form_cls()
+        }
+
+        return render(request, 'kv/add.html', context)
 
     def delete_view(self, request, pk):
         """
