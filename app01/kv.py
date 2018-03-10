@@ -4,6 +4,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 
+# UserInfo表格显示
 class KeegvUserInfo(v1.BaseKeegvAdmin):
 
     def func(self, obj=None, is_header=False):
@@ -25,14 +26,27 @@ class KeegvUserInfo(v1.BaseKeegvAdmin):
             tag = "<input type='checkbox' value='{0}' />".format(obj.pk)
             return mark_safe(tag)
 
+    def comb(self, obj=None, is_header=False):
+        if is_header:
+            # 表头部信息
+            return "用户信息"
+        else:
+            # 表内容信息
+            return "%s-%s" %(obj.username, obj.email)
+
+
+
     # 用于显示列
-    list_display = [checkbox, 'id', 'username', 'email',func]
+    list_display = [checkbox, 'id', 'username', 'email', comb,func]
 
 
+v1.site.register(models.UserInfo, KeegvUserInfo)
+
+
+# Role表格显示
 class KeegvRole(v1.BaseKeegvAdmin):
     list_display = ['id', 'name']
 
 
-v1.site.register(models.UserInfo, KeegvUserInfo)
 v1.site.register(models.Role, KeegvRole)
 

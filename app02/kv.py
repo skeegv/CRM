@@ -3,7 +3,8 @@ from keegv.service import v1
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-
+# 自定制类
+"""
 class KeegvXXX(v1.BaseKeegvAdmin):
 
     def func(self, obj):
@@ -36,7 +37,11 @@ class KeegvXXX(v1.BaseKeegvAdmin):
 
     # 用于显示列
     list_display = [checkbox, 'id', 'title', func]
+"""
+
+# v1.site.register(models.XXX, KeegvXXX)
 
 
-v1.site.register(models.XXX, KeegvXXX)
-# v1.site.register(models.EEE)
+# 使用默认的 BaseKeegvAdmin
+v1.site.register(models.XXX)
+v1.site.register(models.EEE)

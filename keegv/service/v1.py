@@ -1,3 +1,82 @@
+"""
+1.数据列表页面,定制显示列
+
+    示例1:
+        v1.site.register(Model),  默认只显示对象列表
+
+    示例2:
+        class SubClass(BaseKeegvAdmin):
+            list_display = []
+
+        v1.site.register(Models, SubClass), 按照list_display 中指定的字段进行显示
+        PS: 字段可以是
+            - 字符串,必须是数据库里的列名
+            - 函数,
+                def comb(self, obj=None, is_header=False):
+                    if is_header:
+                        # 表头部信息
+                        return "用户信息"
+                    else:
+                        # 表内容信息
+                        return "%s-%s" %(obj.username, obj.email)
+
+
+
+2.完整示例如下
+
+from app01 import models
+from keegv.service import v1
+from django.urls import reverse
+from django.utils.safestring import mark_safe
+
+
+# UserInfo表格显示
+class KeegvUserInfo(v1.BaseKeegvAdmin):
+
+    def func(self, obj=None, is_header=False):
+        if is_header:
+            return "操作"
+        else:
+            name = "{0}:{1}_{2}_change".format(self.site.namespace, self.model_class._meta.app_label, self.model_class._meta.model_name)
+            # 反向生成 URL(args 自动把 pk 放在 \d+ 的位置)
+            url = reverse(name, args=(obj.pk,))
+            return mark_safe("<a href='{0}'>编辑</a>".format(url))
+
+    def checkbox(self, obj=None, is_header=False):
+        if is_header:
+            # 返回页面 CheckBox 标签
+            # return mark_safe('<input type="checkbox">')
+            return mark_safe('选项')
+        else:
+            # 生 checkbox tag
+            tag = "<input type='checkbox' value='{0}' />".format(obj.pk)
+            return mark_safe(tag)
+
+    def comb(self, obj=None, is_header=False):
+        if is_header:
+            # 表头部信息
+            return "用户信息"
+        else:
+            # 表内容信息
+            return "%s-%s" %(obj.username, obj.email)
+
+
+
+    # 用于显示列
+    list_display = [checkbox, 'id', 'username', 'email', comb,func]
+
+
+v1.site.register(models.UserInfo, KeegvUserInfo)
+
+
+# Role表格显示
+class KeegvRole(v1.BaseKeegvAdmin):
+    list_display = ['id', 'name']
+
+
+v1.site.register(models.Role, KeegvRole)
+"""
+
 from django.shortcuts import HttpResponse, render
 from django.contrib import admin
 from django.conf.urls import url, include
@@ -55,7 +134,6 @@ class BaseKeegvAdmin(object):
         """
         info = self.model_class._meta.app_label, self.model_class._meta.model_name
         data = '%s_%s_add' % info
-        print(data)
         return HttpResponse(data)
 
     def delete_view(self, request, pk):
@@ -67,7 +145,6 @@ class BaseKeegvAdmin(object):
         """
         info = self.model_class._meta.app_label, self.model_class._meta.model_name
         data = '%s_%s_delete' % info
-        print(data)
 
         # self.model_class.filter(id=pk).delete()
         return HttpResponse(data)
