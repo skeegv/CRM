@@ -77,6 +77,7 @@ class KeegvRole(v1.BaseKeegvAdmin):
 v1.site.register(models.Role, KeegvRole)
 """
 
+from django.urls import reverse
 from django.shortcuts import HttpResponse, render
 from django.contrib import admin
 from django.conf.urls import url, include
@@ -89,6 +90,9 @@ class BaseKeegvAdmin(object):
         self.model_class = model_class
         self.site = site
         self.request = None
+
+        self.app_label = model_class._meta.app_label
+        self.model_name = model_class._meta.model_name
 
     @property
     def urls(self):
@@ -118,13 +122,27 @@ class BaseKeegvAdmin(object):
         # print(self.model_class)
         # <class 'app01.models.UserInfo'>
 
+        # 生成页面上: 添加按钮
+
+        from django.http.request import QueryDict
+
+        param_dict = QueryDict(mutable=True)
+
+        if request.GET:
+            # 新增一个 _changelistfilter 用来封装所有当前 request.GET 里的数据
+            param_dict['_changelistfilter'] = request.GET.urlencode()
+
+        base_add_url = reverse("{2}:{0}_{1}_add".format(self.app_label, self.model_name, self.site.namespace))
+
+        add_url = "{0}?{1}".format(base_add_url, param_dict.urlencode())
+
         context = {
             'result_list': result_list,
             'list_display': self.list_display,
             'kvadmin_obj': self
         }
 
-        return render(request, 'kv/change_list.html', {'context': context})
+        return render(request, 'kv/change_list.html', {'context': context, 'add_url': add_url})
 
     def add_view(self, request):
         """
