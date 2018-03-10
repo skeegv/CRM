@@ -78,7 +78,7 @@ v1.site.register(models.Role, KeegvRole)
 """
 
 from django.urls import reverse
-from django.shortcuts import HttpResponse, render
+from django.shortcuts import HttpResponse, render, redirect
 from django.contrib import admin
 from django.conf.urls import url, include
 
@@ -101,13 +101,17 @@ class BaseKeegvAdmin(object):
             # 用户自定制配置
             return self.add_or_model_form
         else:
-            # 默认配置(对象由类创建,类由 type 创建)
+            # 默认配置
             from django.forms import ModelForm
+            # 方式一
+            # class MyModelForm(ModelForm):
+            #     class Meta:
+            #         model = self.model_class
+            #         fields = "__all__"
 
-            class MyModelForm(ModelForm):
-                class Meta:
-                    model = self.model_class
-                    fields = "__all__"
+            # 方式二:对象由类创建,类由 type 创建)
+            _m = type('Meta', (object,), {'model': self.model_class, 'fields': "__all__"})
+            MyModelForm = type('MyModelForm', (ModelForm,), {'Meta': _m})
 
             return MyModelForm
 
@@ -167,12 +171,20 @@ class BaseKeegvAdmin(object):
         :param request: 请求信息
         :return:
         """
-        print(request.GET.get('_changelistfiter'))
 
-        model_form_cls = self.get_add_or_model_form()
-
+        if request.method == "GET":
+            model_form_obj = self.get_add_or_model_form()()
+        elif request.method == "POST":
+            model_form_obj =self.get_add_or_model_form()(data=request.POST, files=request.FILES)
+            if model_form_obj.is_valid():
+                model_form_obj.save()
+                # 添加成功,进行跳转原地址
+                # /kv/app01/userinfo  + request.GET.get('_changelistfiter')
+                base_list_url = reverse("{2}:{0}_{1}_changelist".format(self.app_label, self.model_name, self.site.namespace))
+                list_url = "{0}?{1}".format(base_list_url, request.GET.get('_changelistfilter'))
+                return redirect(list_url)
         context = {
-            "form": model_form_cls()
+            "form": model_form_obj
         }
 
         return render(request, 'kv/add.html', context)
