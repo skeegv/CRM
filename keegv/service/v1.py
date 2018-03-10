@@ -97,6 +97,9 @@ class BaseKeegvAdmin(object):
 
 
     def get_add_or_model_form(self):
+        """
+        :return: MyModelForm()
+        """
         if self.add_or_model_form:
             # 用户自定制配置
             return self.add_or_model_form
@@ -209,9 +212,36 @@ class BaseKeegvAdmin(object):
         :param pk:  nid
         :return:
         """
-        info = self.model_class._meta.app_label, self.model_class._meta.model_name
-        data = '%s_%s_change' % info
-        return HttpResponse(data)
+        # 1. 获取 _changelistfilter 中传递的参数
+        # request.GET.get('_changelistfilter')
+        # 2. 根据 PK 页面显示并提供默认值
+
+        # 获取数据库对象
+        obj = self.model_class.objects.filter(pk=pk).first()
+        if not obj:
+            return HttpResponse('ID 不存在')
+        if request.method == "GET":
+
+            model_form_obj = self.get_add_or_model_form()(instance=obj)
+
+        else:
+            # 新增数据一定要注意要添加 instance=obj, 不然就是新增一条数据.
+            model_form_obj = self.get_add_or_model_form()(data=request.POST, files=request.FILES, instance=obj)
+            # 验证模块
+            if model_form_obj.is_valid():
+                # 更新页面数据到数据
+                model_form_obj.save()
+                # 添加成功,进行跳转原地址
+                # /kv/app01/userinfo  + request.GET.get('_changelistfiter')
+                base_list_url = reverse("{2}:{0}_{1}_changelist".format(self.app_label, self.model_name, self.site.namespace))
+                list_url = "{0}?{1}".format(base_list_url, request.GET.get('_changelistfilter'))
+                return redirect(list_url)
+        # 3. modelForm 返回页面
+        context = {
+            'form':model_form_obj
+        }
+
+        return render(request,'kv/edit.html',context)
 
 
 class Keegv(object):
