@@ -1,24 +1,25 @@
-from django.shortcuts import HttpResponse
+from django.shortcuts import HttpResponse, render
 from django.contrib import admin
 from django.conf.urls import url, include
 
 
 class BaseKeegvAdmin(object):
+    list_display = "__all__"
 
     def __init__(self, model_class, site):
         self.model_class = model_class
         self.site = site
+        self.request = None
 
     @property
     def urls(self):
-
         info = self.model_class._meta.app_label, self.model_class._meta.model_name
 
         urlpatterns = [
-          url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
-          url(r'^add/$', self.add_view, name='%s_%s_add' % info),
-          url(r'^(.+)/delete/$', self.delete_view, name='%s_%s_delete' % info),
-          url(r'^(.+)/change/$', self.change_view, name='%s_%s_change' % info),
+            url(r'^$', self.changelist_view, name='%s_%s_changelist' % info),
+            url(r'^add/$', self.add_view, name='%s_%s_add' % info),
+            url(r'^(.+)/delete/$', self.delete_view, name='%s_%s_delete' % info),
+            url(r'^(.+)/change/$', self.change_view, name='%s_%s_change' % info),
         ]
         return urlpatterns
 
@@ -28,10 +29,24 @@ class BaseKeegvAdmin(object):
         :param request: 请求信息
         :return:
         """
+        self.request = request
         info = self.model_class._meta.app_label, self.model_class._meta.model_name
         data = '%s_%s_changelist' % info
-        print(data)
-        return HttpResponse(data)
+        # print(data)
+        # app01_userinfo_changelist
+
+        result_list = self.model_class.objects.all()
+        print(99, result_list)
+        # print(self.model_class)
+        # <class 'app01.models.UserInfo'>
+
+        context = {
+            'result_list': result_list,
+            'list_display': self.list_display,
+            'kvadmin_obj': self
+        }
+
+        return render(request, 'kv/change_list.html', {'context': context})
 
     def add_view(self, request):
         """
@@ -54,6 +69,8 @@ class BaseKeegvAdmin(object):
         info = self.model_class._meta.app_label, self.model_class._meta.model_name
         data = '%s_%s_delete' % info
         print(data)
+
+        # self.model_class.filter(id=pk).delete()
         return HttpResponse(data)
 
     def change_view(self, request, pk):
@@ -117,7 +134,7 @@ class Keegv(object):
 
         return ret
 
-    @property  #@property可以把一个实例方法变成其同名属性，以支持.号访问，它亦可标记设置限制，加以规范.
+    @property  # @property可以把一个实例方法变成其同名属性，以支持.号访问，它亦可标记设置限制，加以规范.
     def urls(self):
         return self.get_urls(), self.app_name, self.namespace
 
