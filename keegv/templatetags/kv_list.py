@@ -36,4 +36,6 @@ def func(context):
     v = table_body(result_list, list_display, kvadmin_obj)
 
     h = table_head(list_display, kvadmin_obj)
-    return {"result": v, 'header_list':h }
+    return {"result": v, 'header_list': h }
+
+

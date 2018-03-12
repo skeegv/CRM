@@ -7,9 +7,15 @@
 </head>
 <body>
     <h1>添加数据</h1>
-    <form method="POST">
+    <form method="POST" novalidate>
         {% csrf_token %}
-        {{ form.as_p }}
+        {% for foo in form %}
+            {% if foo.is_popup %}
+                <p>{{ foo.item.field.label }}:{{ foo.item }}<a href="{{ foo.popup_url }}">添加</a>{{ foo.errors.0 }}</p>
+            {% else %}
+                <p>{{ foo.item.field.label }}:{{ foo.item }}{{ foo.errors.0 }}</p>
+            {% endif %}
+        {% endfor %}
         <input type="submit" value="提交">
     </form>
 </body>

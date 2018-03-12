@@ -64,4 +64,5 @@ class KeegvRole(v1.BaseKeegvAdmin):
 
 
 v1.site.register(models.Role, KeegvRole)
+v1.site.register(models.UserGroup)
 

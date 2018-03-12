@@ -95,7 +95,6 @@ class BaseKeegvAdmin(object):
         self.app_label = model_class._meta.app_label
         self.model_name = model_class._meta.model_name
 
-
     def get_add_or_model_form(self):
         """
         :return: MyModelForm()
@@ -137,10 +136,6 @@ class BaseKeegvAdmin(object):
         :return:
         """
         self.request = request
-        info = self.model_class._meta.app_label, self.model_class._meta.model_name
-        data = '%s_%s_changelist' % info
-        # print(data)
-        # app01_userinfo_changelist
 
         result_list = self.model_class.objects.all()
         # print(self.model_class)
@@ -178,16 +173,41 @@ class BaseKeegvAdmin(object):
         if request.method == "GET":
             model_form_obj = self.get_add_or_model_form()()
         elif request.method == "POST":
-            model_form_obj =self.get_add_or_model_form()(data=request.POST, files=request.FILES)
+            model_form_obj = self.get_add_or_model_form()(data=request.POST, files=request.FILES)
             if model_form_obj.is_valid():
                 model_form_obj.save()
                 # 添加成功,进行跳转原地址
                 # /kv/app01/userinfo  + request.GET.get('_changelistfiter')
-                base_list_url = reverse("{2}:{0}_{1}_changelist".format(self.app_label, self.model_name, self.site.namespace))
+                base_list_url = reverse(
+                    "{2}:{0}_{1}_changelist".format(self.app_label, self.model_name, self.site.namespace))
                 list_url = "{0}?{1}".format(base_list_url, request.GET.get('_changelistfilter'))
                 return redirect(list_url)
+
+        from django.forms.boundfield import BoundField
+        from django.db.models.query import QuerySet
+        from django.db.models.base import ModelBase
+        from django.forms.models import ModelMultipleChoiceField, ModelChoiceField
+
+        form_list = []
+        for item in model_form_obj:
+            row = {'is_popup': False, 'item': None, 'popup_url': None}
+            if isinstance(item.field, ModelChoiceField) and item.field.queryset.model in self.site._registry:
+                # print(type(item.field.queryset.model._meta.app_label), item.field.queryset.model._meta.app_label, item.field.queryset.model._meta.model_name)
+                target_app_label = item.field.queryset.model._meta.app_label
+                target_model_name = item.field.queryset.model._meta.model_name
+                # self.site.namespace
+                url_name = "{0}:{1}_{2}_add".format(self.site.namespace, target_app_label, target_model_name)
+                target_url = reverse(url_name)
+                row['is_popup'] = True
+                row['item'] = item
+                row['popup_url'] = target_url
+            else:
+                row['item'] = item
+
+            form_list.append(row)
+
         context = {
-            "form": model_form_obj
+            "form": form_list
         }
 
         return render(request, 'kv/add.html', context)
@@ -199,11 +219,13 @@ class BaseKeegvAdmin(object):
         :param pk:  NID
         :return:
         """
-        info = self.model_class._meta.app_label, self.model_class._meta.model_name
-        data = '%s_%s_delete' % info
 
+        """
+        根据 PK 获取数据,然后 delete()
+        获取 URL, 跳转会列表页面
+        """
         # self.model_class.filter(id=pk).delete()
-        return HttpResponse(data)
+        return HttpResponse('...')
 
     def change_view(self, request, pk):
         """
@@ -233,15 +255,16 @@ class BaseKeegvAdmin(object):
                 model_form_obj.save()
                 # 添加成功,进行跳转原地址
                 # /kv/app01/userinfo  + request.GET.get('_changelistfiter')
-                base_list_url = reverse("{2}:{0}_{1}_changelist".format(self.app_label, self.model_name, self.site.namespace))
+                base_list_url = reverse(
+                    "{2}:{0}_{1}_changelist".format(self.app_label, self.model_name, self.site.namespace))
                 list_url = "{0}?{1}".format(base_list_url, request.GET.get('_changelistfilter'))
                 return redirect(list_url)
         # 3. modelForm 返回页面
         context = {
-            'form':model_form_obj
+            'form': model_form_obj
         }
 
-        return render(request,'kv/edit.html',context)
+        return render(request, 'kv/edit.html', context)
 
 
 class Keegv(object):
