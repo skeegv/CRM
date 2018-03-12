@@ -1,4 +1,4 @@
-{% load kv_list %}
+{% load kv_form %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,16 +7,6 @@
 </head>
 <body>
     <h1>添加数据</h1>
-    <form method="POST" novalidate>
-        {% csrf_token %}
-        {% for foo in form %}
-            {% if foo.is_popup %}
-                <p>{{ foo.item.field.label }}:{{ foo.item }}<a href="{{ foo.popup_url }}">添加</a>{{ foo.errors.0 }}</p>
-            {% else %}
-                <p>{{ foo.item.field.label }}:{{ foo.item }}{{ foo.errors.0 }}</p>
-            {% endif %}
-        {% endfor %}
-        <input type="submit" value="提交">
-    </form>
+    {% show_add_edit_form form %}
 </body>
 </html>

@@ -172,45 +172,39 @@ class BaseKeegvAdmin(object):
 
         if request.method == "GET":
             model_form_obj = self.get_add_or_model_form()()
-        elif request.method == "POST":
+            context = {
+                "form": model_form_obj
+            }
+
+            return render(request, 'kv/add.html', context)
+        else:
             model_form_obj = self.get_add_or_model_form()(data=request.POST, files=request.FILES)
             if model_form_obj.is_valid():
-                model_form_obj.save()
-                # 添加成功,进行跳转原地址
-                # /kv/app01/userinfo  + request.GET.get('_changelistfiter')
-                base_list_url = reverse(
-                    "{2}:{0}_{1}_changelist".format(self.app_label, self.model_name, self.site.namespace))
-                list_url = "{0}?{1}".format(base_list_url, request.GET.get('_changelistfilter'))
-                return redirect(list_url)
+                # 新建并写入数据库,返回值 就是我们新增的那条数据
+                obj = model_form_obj.save()
+                popid = request.GET.get('popup')
 
-        from django.forms.boundfield import BoundField
-        from django.db.models.query import QuerySet
-        from django.db.models.base import ModelBase
-        from django.forms.models import ModelMultipleChoiceField, ModelChoiceField
+                # 如果是 popup,
+                if popid:
+                    # print(obj, type(obj))
+                    # dsd <class 'app01.models.UserGroup'>
 
-        form_list = []
-        for item in model_form_obj:
-            row = {'is_popup': False, 'item': None, 'popup_url': None}
-            if isinstance(item.field, ModelChoiceField) and item.field.queryset.model in self.site._registry:
-                # print(type(item.field.queryset.model._meta.app_label), item.field.queryset.model._meta.app_label, item.field.queryset.model._meta.model_name)
-                target_app_label = item.field.queryset.model._meta.app_label
-                target_model_name = item.field.queryset.model._meta.model_name
-                # self.site.namespace
-                url_name = "{0}:{1}_{2}_add".format(self.site.namespace, target_app_label, target_model_name)
-                target_url = reverse(url_name)
-                row['is_popup'] = True
-                row['item'] = item
-                row['popup_url'] = target_url
-            else:
-                row['item'] = item
+                    # 等同于获取 对象里的 __str__方法
+                    return render(request, 'kv/popup_response.html', {'data_dict': {'pk': obj.pk, 'text': str(obj), 'popid': popid}}
+)
+                else:
+                    # 添加成功,进行跳转原地址
+                    # /kv/app01/userinfo  + request.GET.get('_changelistfiter')
+                    base_list_url = reverse(
+                        "{2}:{0}_{1}_changelist".format(self.app_label, self.model_name, self.site.namespace))
+                    list_url = "{0}?{1}".format(base_list_url, request.GET.get('_changelistfilter'))
+                    return redirect(list_url)
 
-            form_list.append(row)
+            context = {
+                "form": model_form_obj
+            }
 
-        context = {
-            "form": form_list
-        }
-
-        return render(request, 'kv/add.html', context)
+            return render(request, 'kv/add.html', context)
 
     def delete_view(self, request, pk):
         """

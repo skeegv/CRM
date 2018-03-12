@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>正在关闭的 pop 页面</title>
+</head>
+<body>
+    <script>
+
+        var data_dict = {{ data_dict|safe }}
+        //将数据传送给发起 popup 的页面(opener 属性是一个可读可写的属性，可返回对创建该窗口的Window 对象的引用。 opener 属性非常有用，创建的窗口可以引用创建它的窗口所定义的属性和函数)
+        {#opener.popupCallBack('{{ popid }}','{{ pk }}','{{ text }}');#}
+        opener.popupCallBack(data_dict);
+        //关闭当前窗口
+        window.close();
+    </script>
+</body>
+</html>

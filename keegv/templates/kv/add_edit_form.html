@@ -1,0 +1,39 @@
+<form method="POST" novalidate>
+    {% csrf_token %}
+    {% for foo in form %}
+        {% if foo.is_popup %}
+            <p>
+                {{ foo.item.field.label }}:{{ foo.item }}
+                {# 1.创建 popup 弹出窗 #}
+                <a href="#" onclick="popupOpen('{{ foo.popup_url }}')">添加</a>
+                {{ foo.errors.0 }}
+            </p>
+        {% else %}
+            <p>
+                {{ foo.item.field.label }}:{{ foo.item }}
+                {{ foo.errors.0 }}
+            </p>
+        {% endif %}
+    {% endfor %}
+    <input type="submit" value="提交">
+</form>
+<script>
+    function popupOpen(url) {
+        //第二个参数是 popup 的名称(也可以直接把 url 放在第二个参数位置),这个名称能重复,如果在页面存在多个 popup 弹出框,name 一样的话,那么就不会再新建一个了.
+        window.open(url,  url, 'status=1, height:500, width:600, toolbar=0, resizeable=0');
+    }
+    function popupCallBack(data_dict) {
+        //创建 option 标签
+        var tag = document.createElement('option');
+        tag.innerHTML = data_dict.text;
+        //设置 value 值
+        tag.setAttribute('value',data_dict.pk);
+        //设置默认选中
+        tag.setAttribute('selected','selected');
+
+        //添加到 popid 下
+        document.getElementById(data_dict.popid).appendChild(tag)
+
+    }
+
+</script>
